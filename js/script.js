@@ -1,96 +1,165 @@
-const STEP_SIZE = 10;
-let keyState = [];
+const V_CHARACTER = 10;
+const V_BULLET = 10;
+const MIN_X = 100;
+const MIN_Y = 100;
+const MAX_X = window.innerWidth - 100;
+const MAX_Y = window.innerHeight - 100;
+const VALID_KEYS = ['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', ' ', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
+let pressedKeys = [];
+let direction = 'right';
+let bulletIntervals = [];
+let reloaded = true;
+let bulletCounter = 0;
 
-const up = ['w', 'W', 'ArrowUp'];
-const left = ['a', 'A', 'ArrowLeft'];
-const down = ['s', 'S', 'ArrowDown'];
-const right = ['d', 'D', 'ArrowRight'];
-
-window.addEventListener('keyup', (e) => {
-    keyState[e.key] = false
-    //lastKey = '';
-});
-window.addEventListener('keydown', (e) => {
-    keyState[e.key] = true;
-    /*let character = document.getElementById('character');
-
-    
-
-    let upAndLeft = up.includes(e.key) && left.includes(lastKey) || up.includes(lastKey) && left.includes(e.key);
-    let upAndRight = up.includes(e.key) && right.includes(lastKey) || up.includes(lastKey) && right.includes(e.key);
-    let downAndLeft = down.includes(e.key) && left.includes(lastKey) || down.includes(lastKey) && left.includes(e.key);
-    let downAndRight = down.includes(e.key) && right.includes(lastKey) || down.includes(lastKey) && right.includes(e.key);
-
-    if (upAndLeft) {
-        let top = character.style.top;
-        let left = character.style.left;
-
-        character.style.top = (parseInt(top.substring(0, top.length - 2)) - STEP_SIZE) + 'px';
-        character.style.left = (parseInt(left.substring(0, left.length - 2)) - STEP_SIZE) + 'px';
-    } else if (upAndRight) {
-        let top = character.style.top;
-        let left = character.style.left;
-
-        character.style.top = (parseInt(top.substring(0, top.length - 2)) - STEP_SIZE) + 'px';
-        character.style.left = (parseInt(left.substring(0, left.length - 2)) + STEP_SIZE) + 'px';
-    } else if (downAndLeft) {
-        let top = character.style.top;
-        let left = character.style.left;
-
-        character.style.top = (parseInt(top.substring(0, top.length - 2)) + STEP_SIZE) + 'px';
-        character.style.left = (parseInt(left.substring(0, left.length - 2)) - STEP_SIZE) + 'px';
-    } else if (downAndRight) {
-        let top = character.style.top;
-        let left = character.style.left;
-
-        character.style.top = (parseInt(top.substring(0, top.length - 2)) + STEP_SIZE) + 'px';
-        character.style.left = (parseInt(left.substring(0, left.length - 2)) + STEP_SIZE) + 'px';
-    } else if (up.includes(e.key)) {
-        let top = character.style.top;
-        character.style.top = (parseInt(top.substring(0, top.length - 2)) - STEP_SIZE) + 'px';
-        
-        lastKey = e.key;
-    } else if (left.includes(e.key)) {
-        let left = character.style.left;
-        character.style.left = (parseInt(left.substring(0, left.length - 2)) - STEP_SIZE) + 'px';
-        
-        lastKey = e.key;
-    } else if (down.includes(e.key)) {
-        let top = character.style.top;
-        character.style.top = (parseInt(top.substring(0, top.length - 2)) + STEP_SIZE) + 'px';
-        
-        lastKey = e.key;
-    } else if (right.includes(e.key)) {
-        let left = character.style.left;
-        character.style.left = (parseInt(left.substring(0, left.length - 2)) + STEP_SIZE) + 'px';
-
-        lastKey = e.key;
-    }*/
-});
-
-function loop() {
+window.addEventListener('load', () => {
     let character = document.getElementById('character');
 
-    for (let i in up)
+    character.style.top = MIN_Y;
+    character.style.left = MIN_X;
 
-    if (keyState['w'] || keyState['W'] || keyState['ArrowUp']) {
-        let top = character.style.top;
-        character.style.top = (parseInt(top.substring(0, top.length - 2)) - STEP_SIZE) + 'px';
-    }
-    if (keyState['a'] || keyState['A'] || keyState['ArrowLeft']) {
-        let left = character.style.left;
-        character.style.left = (parseInt(left.substring(0, left.length - 2)) - STEP_SIZE) + 'px';
-    }
-    if (keyState['s'] || keyState['S'] || keyState['ArrowDown']) {
-        let top = character.style.top;
-        character.style.top = (parseInt(top.substring(0, top.length - 2)) + STEP_SIZE) + 'px';
-    }
-    if (keyState['d'] || keyState['D'] || keyState['ArrowRight']) {
-        let left = character.style.left;
-        character.style.left = (parseInt(left.substring(0, left.length - 2)) + STEP_SIZE) + 'px';
-    }
+    setInterval(interval, 10);
+});
 
-    setTimeout(loop, 10);
+window.addEventListener('keyup', (element) => {
+    if (VALID_KEYS.includes(element.key)) {
+        pressedKeys[element.key] = false;
+    }
+});
+
+window.addEventListener('keydown', (element) => {
+    if (VALID_KEYS.includes(element.key)) {
+        pressedKeys[element.key] = true;
+    }
+});
+
+function interval() {
+    if (pressedKeys['w'] || pressedKeys['W'] || pressedKeys['ArrowUp']) {
+        direction = 'up';
+        move();
+    }
+    if (pressedKeys['a'] || pressedKeys['A'] || pressedKeys['ArrowLeft']) {
+        direction = 'left';
+        move();
+    }
+    if (pressedKeys['s'] || pressedKeys['S'] || pressedKeys['ArrowDown']) {
+        direction = 'down';
+        move();
+    }
+    if (pressedKeys['d'] || pressedKeys['D'] || pressedKeys['ArrowRight']) {
+        direction = 'right';
+        move();
+    }
+    if (pressedKeys[' '] && reloaded) {
+        shoot();
+        reloaded = false;
+        setTimeout(reload, 300);
+    }
 }
-loop();
-//window.addEventListener('load', loop());
+
+function move() {
+    let character = document.getElementById('character');
+    let top = character.style.top;
+    let left = character.style.left;
+    
+    switch (direction) {
+        case 'up':
+            if (parseInt(top) - V_CHARACTER >= MIN_Y) {
+                character.style.top = (parseInt(top) - V_CHARACTER) + 'px';
+            } else {
+                character.style.top = MIN_Y + 'px';
+            }
+            break;
+
+        case 'left':
+            if (parseInt(left) - V_CHARACTER >= MIN_X) {
+                character.style.left = (parseInt(left) - V_CHARACTER) + 'px';
+            } else {
+                character.style.left = MIN_X + 'px';
+            }
+            break;
+
+        case 'down':
+            if (parseInt(top) + V_CHARACTER + parseInt(character.height) <= MAX_Y) {
+                character.style.top = (parseInt(top) + V_CHARACTER) + 'px';
+            } else {
+                character.style.top = (MAX_Y - character.height) + 'px';
+            }
+            break;
+
+        case 'right':
+            if (parseInt(left) + V_CHARACTER + parseInt(character.width) <= MAX_X) {
+                character.style.left = (parseInt(left) + V_CHARACTER) + 'px';
+            } else {
+                character.style.left = (MAX_X - character.width) + 'px';
+            }
+            break;
+    }
+}
+
+function shoot() {
+    let longSide = '20px';
+    let shortSide = '6px';
+    let character = document.getElementById('character');
+    let body = document.getElementById('body');
+    let bullet = document.createElement('div');
+
+    bullet.className = 'bullet';
+    bullet.direction = direction;
+    bullet.number = bulletCounter;
+    bullet.style.backgroundColor = 'black';
+    bullet.style.position = 'absolute';
+    bullet.style.top = (parseInt(character.style.top) + parseInt(character.height) / 2) + 'px';
+    bullet.style.left = (parseInt(character.style.left) + parseInt(character.width) / 2) + 'px';
+
+    if (direction == 'up' || direction == 'down') {
+        bullet.style.height = longSide;
+        bullet.style.width = shortSide;
+    } else {
+        bullet.style.height = shortSide;
+        bullet.style.width = longSide;
+    }
+
+    body.appendChild(bullet);
+
+    bulletIntervals['bullet' + bulletCounter++] = setInterval(moveBullet, 10);
+}
+
+function moveBullet() {
+    let bullets = document.getElementsByClassName('bullet');
+
+    for (let bullet of bullets) {
+        let top = bullet.style.top;
+        let left = bullet.style.left;
+
+        switch (bullet.direction) {
+            case 'up':
+                bullet.style.top = (parseInt(top) - V_BULLET) + 'px';
+                break;
+
+            case 'left':
+                bullet.style.left = (parseInt(left) - V_BULLET) + 'px';
+                break;
+
+            case 'down':
+                bullet.style.top = (parseInt(top) + V_BULLET) + 'px';
+                break;
+
+            case 'right':
+                bullet.style.left = (parseInt(left) + V_BULLET) + 'px';
+                break;
+        }
+
+        top = parseInt(bullet.style.top);
+        left = parseInt(bullet.style.left);
+
+        if (left < MIN_X || left > MAX_X || top < MIN_Y || top > MAX_Y) {
+            clearInterval(bulletIntervals['bullet' + bullet.number]);
+            bulletIntervals.splice('bullet' + bullet.numer);
+            document.getElementById('body').removeChild(bullet);
+        }
+    }
+}
+
+function reload() {
+    reloaded = true;
+}
