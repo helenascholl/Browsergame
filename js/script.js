@@ -3,11 +3,12 @@ const MIN_X = 100;
 const MIN_Y = 100;
 const MAX_X = window.innerWidth - 100;
 const MAX_Y = window.innerHeight - 100;
-const VALID_KEYS = ['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', ' ', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
+const VALID_KEYS = ['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
 let pressedKeys = [];
 let bulletIntervals = [];
 let reloaded = true;
 let bulletCounter = 0;
+let bulletDirection = 'right';
 
 window.addEventListener('load', () => {
     let character = document.getElementById('character');
@@ -50,27 +51,51 @@ function interval() {
 function interpretKeys() {
     let character = document.getElementById('character');
 
-    if (pressedKeys['w'] || pressedKeys['W'] || pressedKeys['ArrowUp']) {
+    if (pressedKeys['w'] || pressedKeys['W']) {
         character.direction = 'up';
         move(character);
     }
-    if (pressedKeys['a'] || pressedKeys['A'] || pressedKeys['ArrowLeft']) {
+    if (pressedKeys['a'] || pressedKeys['A']) {
         character.direction = 'left';
         move(character);
     }
-    if (pressedKeys['s'] || pressedKeys['S'] || pressedKeys['ArrowDown']) {
+    if (pressedKeys['s'] || pressedKeys['S']) {
         character.direction = 'down';
         move(character);
     }
-    if (pressedKeys['d'] || pressedKeys['D'] || pressedKeys['ArrowRight']) {
+    if (pressedKeys['d'] || pressedKeys['D']) {
         character.direction = 'right';
         move(character);
     }
-    if (pressedKeys[' '] && reloaded) {
+    if (pressedKeys['ArrowUp'] && reloaded) {
+        bulletDirection = 'up';
+        reloaded = false;
+        setTimeout(reload, 300);
+        shoot();
+    }
+    if (pressedKeys['ArrowLeft'] && reloaded) {
+        bulletDirection = 'left';
+        reloaded = false;
+        setTimeout(reload, 300);
+        shoot();
+    }
+    if (pressedKeys['ArrowDown'] && reloaded) {
+        bulletDirection = 'down';
+        reloaded = false;
+        setTimeout(reload, 300);
+        shoot();
+    }
+    if (pressedKeys['ArrowRight'] && reloaded) {
+        bulletDirection = 'right';
+        reloaded = false;
+        setTimeout(reload, 300);
+        shoot();
+    }
+    /*if (pressedKeys[' '] && reloaded) {
         shoot(character);
         reloaded = false;
         setTimeout(reload, 300);
-    }
+    }*/
 }
 
 function move(character) {
@@ -120,7 +145,7 @@ function shoot() {
     let bullet = document.createElement('div');
 
     bullet.className = 'bullet';
-    bullet.direction = character.direction;
+    bullet.direction = bulletDirection;
     bullet.number = bulletCounter;
     bullet.style.backgroundColor = 'black';
     bullet.style.position = 'absolute';
@@ -252,4 +277,8 @@ function moveEnemies() {
 
         move(enemy);
     }
+}
+
+function detectCollision() {
+
 }
