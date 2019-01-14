@@ -91,11 +91,6 @@ function interpretKeys() {
         setTimeout(reload, 300);
         shoot();
     }
-    /*if (pressedKeys[' '] && reloaded) {
-        shoot(character);
-        reloaded = false;
-        setTimeout(reload, 300);
-    }*/
 }
 
 function move(character) {
@@ -186,6 +181,12 @@ function moveBullets() {
             case 'right':
                 bullet.style.left = (parseInt(left) + V_BULLET) + 'px';
                 break;
+        }
+
+        for (let enemy in document.getElementsByClassName('enemy')) {
+            if (bullet.style.left + bullet.style.width > enemy.style.left && bullet.style.left < enemy.style.left + enemy.width && bullet.style.top >= enemy.style.top && bullet.style.top <= enemy.style.top + enemy.height) {
+                
+            }
         }
 
         top = parseInt(bullet.style.top);
