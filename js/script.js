@@ -1,9 +1,13 @@
 const V_BULLET = 15;
+const V_PLAYER = 10;
+const V_ENEMY = 3;
 const MIN_X = 100;
 const MIN_Y = 100;
 const MAX_X = window.innerWidth - 100;
 const MAX_Y = window.innerHeight - 100;
 const VALID_KEYS = ['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', ' ', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
+let CHARACTER_WIDTH = 30;
+let CHARACTER_HEIGHT = 53;
 let player;
 let body;
 let pressedKeys = [];
@@ -12,11 +16,11 @@ let reloaded = true;
 let bulletCounter = 0;
 
 window.addEventListener('load', () => {
-    let div = document.createElement('div');
+    //let div = document.createElement('div');
 
     body = document.getElementById('body');
 
-    div.style.display = 'none';
+    /*div.style.display = 'none';
     for (let i = 0; i <= 8; i++) {
         let player_up = document.createElement('img');
         let player_left = document.createElement('img');
@@ -45,20 +49,26 @@ window.addEventListener('load', () => {
         div.appendChild(enemy_down);
         div.appendChild(enemy_right);
     }
-    body.appendChild(div);
+    body.appendChild(div);*/
 
-    player = document.getElementById('player');
-    player.src = './img/player/right0.png'
+    player = document.createElement('div');
+    player.style.height = CHARACTER_HEIGHT + 'px';
+    player.style.width = CHARACTER_WIDTH + 'px';
+    player.style.backgroundImage = 'url(./img/player.png)';
+    player.style.backgroundPositionX = '0px';
+    player.style.backgroundPositionY = CHARACTER_HEIGHT + 'px';
     player.direction = 'right';
-    player.velocity = 10;
+    player.velocity = V_PLAYER;
     player.style.top = MIN_Y + 'px';
     player.style.left = MIN_X + 'px';
 
-    for (let child of body.childNodes) {
+    body.appendChild(player);
+
+    /*for (let child of body.childNodes) {
         if (child.data == '\n') {
             body.removeChild(child);
         }
-    }
+    }*/
 
     setInterval(interval, 10);
     setInterval(spawnEnemy, 5000);
@@ -77,7 +87,7 @@ window.addEventListener('keydown', (element) => {
 });
 
 function interval() {
-    animateCharacters();
+    //animateCharacters();
     interpretKeys();
     moveBullets();
     moveEnemies();
@@ -108,42 +118,44 @@ function interpretKeys() {
 }
 
 function move(character) {
-    let top = player.style.top;
-    let left = character.style.left;
+    let top = parseInt(character.style.top);
+    let left = parseInt(character.style.left);
     
     switch (character.direction) {
         case 'up':
-            if (parseInt(top) - character.velocity >= MIN_Y) {
-                character.style.top = (parseInt(top) - character.velocity) + 'px';
+            if (top - character.velocity >= MIN_Y) {
+                character.style.top = (top - character.velocity) + 'px';
             } else {
                 character.style.top = MIN_Y + 'px';
             }
             break;
 
         case 'left':
-            if (parseInt(left) - character.velocity >= MIN_X) {
-                character.style.left = (parseInt(left) - character.velocity) + 'px';
+            if (left - character.velocity >= MIN_X) {
+                character.style.left = (left - character.velocity) + 'px';
             } else {
                 character.style.left = MIN_X + 'px';
             }
             break;
 
         case 'down':
-            if (parseInt(top) + character.velocity + parseInt(character.height) <= MAX_Y) {
-                character.style.top = (parseInt(top) + character.velocity) + 'px';
+            if (top + character.velocity + parseInt(character.style.height) <= MAX_Y) {
+                character.style.top = (top + character.velocity) + 'px';
             } else {
-                character.style.top = (MAX_Y - character.height) + 'px';
+                character.style.top = (MAX_Y - character.style.height) + 'px';
             }
             break;
 
         case 'right':
-            if (parseInt(left) + character.velocity + parseInt(character.width) <= MAX_X) {
-                character.style.left = (parseInt(left) + character.velocity) + 'px';
+            if (left + character.velocity + parseInt(character.style.width) <= MAX_X) {
+                character.style.left = (left + character.velocity) + 'px';
             } else {
-                character.style.left = (MAX_X - character.width) + 'px';
+                character.style.left = (MAX_X - character.style.width) + 'px';
             }
             break;
     }
+
+    animate(character);
 }
 
 function shoot() {
@@ -156,8 +168,8 @@ function shoot() {
     bullet.number = bulletCounter;
     bullet.style.backgroundColor = 'black';
     bullet.style.position = 'absolute';
-    bullet.style.top = (parseInt(player.style.top) + parseInt(player.height) / 2) + 'px';
-    bullet.style.left = (parseInt(player.style.left) + parseInt(player.width) / 2) + 'px';
+    bullet.style.top = (parseInt(player.style.top) + parseInt(player.style.height) / 2) + 'px';
+    bullet.style.left = (parseInt(player.style.left) + parseInt(player.style.width) / 2) + 'px';
 
     if (bullet.direction == 'up' || bullet.direction == 'down') {
         bullet.style.height = longSide;
@@ -171,9 +183,7 @@ function shoot() {
 }
 
 function moveBullets() {
-    let bullets = document.getElementsByClassName('bullet');
-
-    for (let bullet of bullets) {
+    for (let bullet of document.getElementsByClassName('bullet')) {
         let top = bullet.style.top;
         let left = bullet.style.left;
 
@@ -211,41 +221,59 @@ function reload() {
 }
 
 function spawnEnemy() {
-    let enemy = document.createElement('img');
+    let enemy = document.createElement('div');
     let isTooClose = false;
+    let top;
+    let left;
 
-    enemy.src = './img/enemy.png';
-    enemy.alt = 'enemy';
-    enemy.height = player.height;
-    enemy.width = player.width;
-    enemy.className = 'enemy';
+    enemy.style.width = CHARACTER_WIDTH + 'px';
+    enemy.style.height = CHARACTER_HEIGHT + 'px';
+    enemy.style.backgroundImage = 'url(./img/enemy.png)';
+    enemy.style.backgroundPositionX = '0px';
+    enemy.style.backgroundPositionY = (3 * CHARACTER_HEIGHT) + 'px';
     enemy.direction = 'left';
-    enemy.velocity = 3;
-    enemy.style.position = 'absolute';
+    enemy.velocity = V_ENEMY;
+    enemy.className = 'enemy';
+
+    /*
+    player = document.createElement('div');
+    player.style.height = CHARACTER_HEIGHT + 'px';
+    player.style.width = CHARACTER_WIDTH + 'px';
+    player.style.backgroundImage = 'url(./img/player.png)';
+    player.style.backgroundPositionX = '0px';
+    player.style.backgroundPositionY = CHARACTER_HEIGHT + 'px';
+    player.direction = 'right';
+    player.velocity = V_PLAYER;
+    player.style.top = MIN_Y + 'px';
+    player.style.left = MIN_X + 'px';
+    */
 
     do {
-        let distanceX;
         let distanceY;
+        let distanceX;
 
-        enemy.style.top = (parseInt(Math.random() * (MAX_Y - MIN_Y)) + MIN_Y) + 'px';
-        enemy.style.left = (parseInt(Math.random() * (MAX_X - MIN_X)) + MIN_X) + 'px';
+        top = parseInt(Math.random() * (MAX_Y - MIN_Y) + MIN_Y);
+        left = parseInt(Math.random() * (MAX_X - MIN_X) + MIN_X);
 
-        distanceX = Math.abs(parseInt(player.style.left) - parseInt(enemy.style.left));
-        distanceY = Math.abs(parseInt(player.style.top) - parseInt(enemy.style.top));
+        distanceY = Math.abs(parseInt(player.style.top) - top);
+        distanceX = Math.abs(parseInt(player.style.left) - left);
 
         if (distanceY < (MAX_Y - MIN_Y) / 4 && distanceX < (MAX_X - MIN_X) / 4) {
             isTooClose = true;
         }
 
         for (let element of document.getElementsByClassName('enemy')) {
-            distanceX = Math.abs(parseInt(element.style.left) - parseInt(enemy.style.left));
-            distanceY = Math.abs(parseInt(element.style.top) - parseInt(enemy.style.top));
+            distanceY = Math.abs(parseInt(element.style.top) - top);
+            distanceX = Math.abs(parseInt(element.style.left) - left);
             
             if (distanceY < element.height && distanceX < element.width) {
                 isTooClose = true;
             }
         }
     } while (isTooClose);
+
+    enemy.style.top = top + 'px';
+    enemy.style.left = left + 'px';
 
     body.appendChild(enemy);
 }
@@ -262,13 +290,13 @@ function moveEnemies() {
                 enemy.direction = 'down';
             }
         } else if (distanceX > 0 && distanceY < 0) {
-            if (distanceX > Math.abs(distanceY)) {
+            if (distanceX > distanceY * -1) {
                 enemy.direction = 'right';
             } else {
                 enemy.direction = 'up';
             }
         } else if (distanceX < 0 && distanceY > 0) {
-            if (Math.abs(distanceX) > distanceY) {
+            if (distanceX * -1 > distanceY) {
                 enemy.direction = 'left';
             } else {
                 enemy.direction = 'down';
@@ -283,7 +311,59 @@ function moveEnemies() {
     }
 }
 
-function animateCharacters() {
+function animate(character) {
+    let y = parseInt(character.style.backgroundPositionY);
+
+    switch (character.direction) {
+        case 'up':
+            if (y != 0) {
+                character.style.backgroundPositionY = '0px';
+                character.style.backgroundPositionX = '0px';
+            } else {
+                moveBackgroundImage(character);
+            }
+            break;
+
+        case 'left':
+            if (y != 3 * CHARACTER_HEIGHT) {
+                character.style.backgroundPositionY = (3 * CHARACTER_HEIGHT) + 'px';
+                character.style.backgroundPositionX = '0px';
+            } else {
+                moveBackgroundImage(character);
+            }
+            break;
+
+        case 'down':
+            if (y != 2 * CHARACTER_HEIGHT) {
+                character.style.backgroundPositionY = (2 * CHARACTER_HEIGHT) + 'px';
+                character.style.backgroundPositionX = '0px';
+            } else {
+                moveBackgroundImage(character);
+            }
+            break;
+
+        case 'right':
+            if (y != CHARACTER_HEIGHT) {
+                character.style.backgroundPositionY = CHARACTER_HEIGHT + 'px';
+                character.style.backgroundPositionX = '0px';
+            } else {
+                moveBackgroundImage(character);
+            }
+            break;
+    }
+}
+
+function moveBackgroundImage(character) {
+    let x = parseInt(character.style.backgroundPositionX);
+
+    if (x == 9 * CHARACTER_WIDTH) {
+        character.style.backgroundPositionX = '0px'
+    } else {
+        character.style.backgroundPositionX = (x + CHARACTER_WIDTH) + 'px';
+    }
+}
+
+/*function animateCharacters() {
     let keyPressed = false;
 
     for (let key of pressedKeys) {
@@ -309,4 +389,4 @@ function animateCharacters() {
     } else {
         player.src = '.img/player/' + player.direction + '0.png';
     }
-}
+}*/

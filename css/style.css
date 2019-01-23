@@ -1,4 +1,7 @@
-img {
+body {
+    overflow: hidden;
+}
+div {
     position: absolute;
     z-index: 1;
 }
