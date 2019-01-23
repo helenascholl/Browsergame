@@ -5,73 +5,43 @@ const MIN_X = 100;
 const MIN_Y = 100;
 const MAX_X = window.innerWidth - 100;
 const MAX_Y = window.innerHeight - 100;
-const VALID_KEYS = ['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', ' ', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
+const VALID_KEYS = ['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
 let CHARACTER_WIDTH = 30;
 let CHARACTER_HEIGHT = 53;
 let player;
 let body;
-let pressedKeys = [];
-let bulletIntervals = [];
-let reloaded = true;
-let bulletCounter = 0;
+let game;
+let pressedKeys;
+let bulletIntervals;
+let mainInterval;
+let spawnEnemyInterval;
+let reloaded;
+let bulletCounter;
+let bulletDirection;
+let score;
+let highscore = 0;
+let scoreParagraph;
+let highscoreParagraph;
 
 window.addEventListener('load', () => {
-    //let div = document.createElement('div');
+    let div = document.createElement('div');
+    let h1 = document.createElement('h1');
+    let button = document.createElement('button');
 
     body = document.getElementById('body');
 
-    /*div.style.display = 'none';
-    for (let i = 0; i <= 8; i++) {
-        let player_up = document.createElement('img');
-        let player_left = document.createElement('img');
-        let player_down = document.createElement('img');
-        let player_right = document.createElement('img');
-        let enemy_up = document.createElement('img');
-        let enemy_left = document.createElement('img');
-        let enemy_down = document.createElement('img');
-        let enemy_right = document.createElement('img');
+    h1.textContent = 'Game';
+    button.textContent = 'Play';
 
-        player_up.src = './img/player/up' + i + '.png';
-        player_left.src = './img/player/left' + i + '.png';
-        player_down.src = './img/player/down' + i + '.png';
-        player_right.src = './img/player/right' + i + '.png';
-        enemy_up.src = './img/enemy/up' + i + '.png';
-        enemy_left.src = './img/enemy/left' + i + '.png';
-        enemy_down.src = './img/enemy/down' + i + '.png';
-        enemy_right.src = './img/enemy/right' + i + '.png';
+    button.addEventListener('click', () => {
+        init();
+        body.removeChild(div);
+    });
 
-        div.appendChild(player_up);
-        div.appendChild(player_left);
-        div.appendChild(player_down);
-        div.appendChild(player_right);
-        div.appendChild(enemy_up);
-        div.appendChild(enemy_left);
-        div.appendChild(enemy_down);
-        div.appendChild(enemy_right);
-    }
-    body.appendChild(div);*/
+    div.appendChild(h1);
+    div.appendChild(button);
 
-    player = document.createElement('div');
-    player.style.height = CHARACTER_HEIGHT + 'px';
-    player.style.width = CHARACTER_WIDTH + 'px';
-    player.style.backgroundImage = 'url(./img/player.png)';
-    player.style.backgroundPositionX = '0px';
-    player.style.backgroundPositionY = CHARACTER_HEIGHT + 'px';
-    player.direction = 'right';
-    player.velocity = V_PLAYER;
-    player.style.top = MIN_Y + 'px';
-    player.style.left = MIN_X + 'px';
-
-    body.appendChild(player);
-
-    /*for (let child of body.childNodes) {
-        if (child.data == '\n') {
-            body.removeChild(child);
-        }
-    }*/
-
-    setInterval(interval, 10);
-    setInterval(spawnEnemy, 5000);
+    body.appendChild(div);
 });
 
 window.addEventListener('keyup', (element) => {
@@ -86,34 +56,95 @@ window.addEventListener('keydown', (element) => {
     }
 });
 
+function init() {
+    pressedKeys = [];
+    bulletIntervals = [];
+    reloaded = true;
+    bulletCounter = 0;
+    score = 0;
+
+    scoreParagraph = document.createElement('p');
+    highscoreParagraph = document.createElement('p');
+
+    scoreParagraph.textContent = 'Score: ' + score;
+    highscoreParagraph.textContent = 'Highscore: ' + highscore;
+
+    game = document.createElement('div');
+
+    player = document.createElement('div');
+    player.style.height = CHARACTER_HEIGHT + 'px';
+    player.style.width = CHARACTER_WIDTH + 'px';
+    player.style.backgroundImage = 'url(./img/player.png)';
+    player.style.backgroundPositionX = '0px';
+    player.style.backgroundPositionY = CHARACTER_HEIGHT + 'px';
+    player.direction = 'right';
+    player.velocity = V_PLAYER;
+    player.style.top = MIN_Y + 'px';
+    player.style.left = MIN_X + 'px';
+
+    game.appendChild(player);
+    game.appendChild(scoreParagraph);
+    game.appendChild(highscoreParagraph);
+
+    body.appendChild(game);
+
+    mainInterval = setInterval(interval, 10);
+    spawnEnemyInterval = setInterval(spawnEnemy, 5000);
+}
+
 function interval() {
-    //animateCharacters();
     interpretKeys();
     moveBullets();
     moveEnemies();
 }
 
 function interpretKeys() {
-    if (pressedKeys['w'] || pressedKeys['W'] || pressedKeys['ArrowUp']) {
+    let noKeysPressed = true;
+
+    for (let i in pressedKeys) {
+        if (pressedKeys[i]) {
+            noKeysPressed = false;
+        }
+    }
+
+    if (pressedKeys['w'] || pressedKeys['W']) {
         player.direction = 'up';
         move(player);
+        animate(player, false);
     }
-    if (pressedKeys['a'] || pressedKeys['A'] || pressedKeys['ArrowLeft']) {
+    if (pressedKeys['a'] || pressedKeys['A']) {
         player.direction = 'left';
         move(player);
+        animate(player, false);
     }
-    if (pressedKeys['s'] || pressedKeys['S'] || pressedKeys['ArrowDown']) {
+    if (pressedKeys['s'] || pressedKeys['S']) {
         player.direction = 'down';
         move(player);
+        animate(player, false);
     }
-    if (pressedKeys['d'] || pressedKeys['D'] || pressedKeys['ArrowRight']) {
+    if (pressedKeys['d'] || pressedKeys['D']) {
         player.direction = 'right';
         move(player);
+        animate(player, false);
     }
-    if (pressedKeys[' '] && reloaded) {
+    if (pressedKeys['ArrowUp'] && reloaded) {
+        bulletDirection = 'up';
         shoot(player);
-        reloaded = false;
-        setTimeout(reload, 300);
+    }
+    if (pressedKeys['ArrowLeft'] && reloaded) {
+        bulletDirection = 'left';
+        shoot(player);
+    }
+    if (pressedKeys['ArrowDown'] && reloaded) {
+        bulletDirection = 'down';
+        shoot(player);
+    }
+    if (pressedKeys['ArrowRight'] && reloaded) {
+        bulletDirection = 'right';
+        shoot(player);
+    }
+    if (noKeysPressed) {
+        animate(player, true);
     }
 }
 
@@ -154,8 +185,6 @@ function move(character) {
             }
             break;
     }
-
-    animate(character);
 }
 
 function shoot() {
@@ -163,8 +192,11 @@ function shoot() {
     let shortSide = '6px';
     let bullet = document.createElement('div');
 
+    reloaded = false;
+    setTimeout(reload, 300);
+
     bullet.className = 'bullet';
-    bullet.direction = player.direction;
+    bullet.direction = bulletDirection;
     bullet.number = bulletCounter;
     bullet.style.backgroundColor = 'black';
     bullet.style.position = 'absolute';
@@ -179,39 +211,62 @@ function shoot() {
         bullet.style.width = longSide;
     }
 
-    body.appendChild(bullet);
+    game.appendChild(bullet);
 }
 
 function moveBullets() {
     for (let bullet of document.getElementsByClassName('bullet')) {
-        let top = bullet.style.top;
-        let left = bullet.style.left;
+        let top = parseInt(bullet.style.top);
+        let left = parseInt(bullet.style.left);
 
         switch (bullet.direction) {
             case 'up':
-                bullet.style.top = (parseInt(top) - V_BULLET) + 'px';
+                bullet.style.top = (top - V_BULLET) + 'px';
                 break;
 
             case 'left':
-                bullet.style.left = (parseInt(left) - V_BULLET) + 'px';
+                bullet.style.left = (left - V_BULLET) + 'px';
                 break;
 
             case 'down':
-                bullet.style.top = (parseInt(top) + V_BULLET) + 'px';
+                bullet.style.top = (top + V_BULLET) + 'px';
                 break;
 
             case 'right':
-                bullet.style.left = (parseInt(left) + V_BULLET) + 'px';
+                bullet.style.left = (left + V_BULLET) + 'px';
                 break;
         }
 
         top = parseInt(bullet.style.top);
         left = parseInt(bullet.style.left);
 
+        for (let enemy of document.getElementsByClassName('enemy')) {
+            let enemyTop = parseInt(enemy.style.top);
+            let enemyLeft = parseInt(enemy.style.left);
+
+            let collision = left + parseInt(bullet.style.width) >= enemyLeft
+                            && left <= enemyLeft + parseInt(enemy.style.width)
+                            && top + parseInt(bullet.style.height) >= enemyTop
+                            && top <= enemyTop + parseInt(enemy.style.height);
+
+            if (collision) {
+                score++;
+                scoreParagraph.textContent = 'Score: ' + score;
+
+                if (score > highscore) {
+                    highscore++;
+                    highscoreParagraph.textContent = 'Highscore: ' + highscore;
+                }
+
+                game.removeChild(enemy);
+                game.removeChild(bullet);
+            }
+        }
+
         if (left < MIN_X || left > MAX_X || top < MIN_Y || top > MAX_Y) {
             clearInterval(bulletIntervals['bullet' + bullet.number]);
             bulletIntervals.splice('bullet' + bullet.numer);
-            body.removeChild(bullet);
+            game.removeChild(bullet);
         }
     }
 }
@@ -235,25 +290,12 @@ function spawnEnemy() {
     enemy.velocity = V_ENEMY;
     enemy.className = 'enemy';
 
-    /*
-    player = document.createElement('div');
-    player.style.height = CHARACTER_HEIGHT + 'px';
-    player.style.width = CHARACTER_WIDTH + 'px';
-    player.style.backgroundImage = 'url(./img/player.png)';
-    player.style.backgroundPositionX = '0px';
-    player.style.backgroundPositionY = CHARACTER_HEIGHT + 'px';
-    player.direction = 'right';
-    player.velocity = V_PLAYER;
-    player.style.top = MIN_Y + 'px';
-    player.style.left = MIN_X + 'px';
-    */
-
     do {
         let distanceY;
         let distanceX;
 
-        top = parseInt(Math.random() * (MAX_Y - MIN_Y) + MIN_Y);
-        left = parseInt(Math.random() * (MAX_X - MIN_X) + MIN_X);
+        top = parseInt(Math.random() * (MAX_Y - MIN_Y - CHARACTER_HEIGHT) + MIN_Y);
+        left = parseInt(Math.random() * (MAX_X - MIN_X - CHARACTER_WIDTH) + MIN_X);
 
         distanceY = Math.abs(parseInt(player.style.top) - top);
         distanceX = Math.abs(parseInt(player.style.left) - left);
@@ -275,7 +317,7 @@ function spawnEnemy() {
     enemy.style.top = top + 'px';
     enemy.style.left = left + 'px';
 
-    body.appendChild(enemy);
+    game.appendChild(enemy);
 }
 
 function moveEnemies() {
@@ -283,7 +325,12 @@ function moveEnemies() {
         let distanceX = parseInt(player.style.left) - parseInt(enemy.style.left);
         let distanceY = parseInt(player.style.top) - parseInt(enemy.style.top);
 
-        if (distanceX > 0 && distanceY > 0) {
+        let gameIsOver = distanceX <= parseInt(enemy.style.width) && distanceX * -1 <= parseInt(player.style.width)
+                        && distanceY <= parseInt(enemy.style.height) && distanceY * -1 <= parseInt(player.style.height);
+
+        if (gameIsOver) {
+            gameOver();
+        } else if (distanceX > 0 && distanceY > 0) {
             if (distanceX > distanceY) {
                 enemy.direction = 'right';
             } else {
@@ -308,15 +355,25 @@ function moveEnemies() {
         }
 
         move(enemy);
+
+        if (Math.abs(Math.abs(distanceX) - Math.abs(distanceY)) <= 3) {
+            if (distanceX > 0) {
+                enemy.direction = 'right';
+            } else {
+                enemy.direction = 'left';
+            }
+        }
+
+        animate(enemy, false);
     }
 }
 
-function animate(character) {
+function animate(character, noKeysPressed) {
     let y = parseInt(character.style.backgroundPositionY);
 
     switch (character.direction) {
         case 'up':
-            if (y != 0) {
+            if (y != 0 || noKeysPressed) {
                 character.style.backgroundPositionY = '0px';
                 character.style.backgroundPositionX = '0px';
             } else {
@@ -325,7 +382,7 @@ function animate(character) {
             break;
 
         case 'left':
-            if (y != 3 * CHARACTER_HEIGHT) {
+            if (y != 3 * CHARACTER_HEIGHT || noKeysPressed) {
                 character.style.backgroundPositionY = (3 * CHARACTER_HEIGHT) + 'px';
                 character.style.backgroundPositionX = '0px';
             } else {
@@ -334,7 +391,7 @@ function animate(character) {
             break;
 
         case 'down':
-            if (y != 2 * CHARACTER_HEIGHT) {
+            if (y != 2 * CHARACTER_HEIGHT || noKeysPressed) {
                 character.style.backgroundPositionY = (2 * CHARACTER_HEIGHT) + 'px';
                 character.style.backgroundPositionX = '0px';
             } else {
@@ -343,7 +400,7 @@ function animate(character) {
             break;
 
         case 'right':
-            if (y != CHARACTER_HEIGHT) {
+            if (y != CHARACTER_HEIGHT || noKeysPressed) {
                 character.style.backgroundPositionY = CHARACTER_HEIGHT + 'px';
                 character.style.backgroundPositionX = '0px';
             } else {
@@ -363,30 +420,36 @@ function moveBackgroundImage(character) {
     }
 }
 
-/*function animateCharacters() {
-    let keyPressed = false;
+function gameOver() {
+    let div = document.createElement('div');
+    let h1 = document.createElement('h1');
+    let button = document.createElement('button');
+    let p1 = document.createElement('p');
+    let p2 = document.createElement('p');
 
-    for (let key of pressedKeys) {
-        if (key) {
-            key = true;
-        }
+    clearInterval(mainInterval);
+    clearInterval(spawnEnemyInterval);
+
+    for (let interval of bulletIntervals) {
+        clearInterval(interval);
     }
 
-    if (keyPressed) {
-        let imageName = player.src.split('/')[3];
-        let imageDirection = imageName.substring(0, imageName.lenght - 5);
-        let imageNumber = parseInt(imageName.substring(imageName.lenght - 1, imageName.lenght));
+    body.removeChild(game);
 
-        if (imageDirection == player.direction) {
-            if (imageNumber != 8) {
-                player.src = './img/player/' + imageDirection + (imageNumber + 1) + '.png';
-            } else {
-                player.src = './img/player/' + imageDirection + '0.png';
-            }
-        } else {
-            player.src = '.img/player/' + player.direction + '0.png';
-        }
-    } else {
-        player.src = '.img/player/' + player.direction + '0.png';
-    }
-}*/
+    h1.textContent = 'Game over';
+    button.textContent = 'Play again';
+    p1.textContent = 'Score: ' + score;
+    p2.textContent = 'Highscore: ' + highscore;
+
+    button.addEventListener('click', () => {
+        init();
+        body.removeChild(div);
+    });
+
+    div.appendChild(h1);
+    div.appendChild(button);
+    div.appendChild(p1);
+    div.appendChild(p2);
+
+    body.appendChild(div);
+}

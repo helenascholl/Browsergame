@@ -1,5 +1,6 @@
 body {
     overflow: hidden;
+    margin: 0;
 }
 div {
     position: absolute;
@@ -7,4 +8,9 @@ div {
 }
 .bullet {
     z-index: 0;
+}
+iframe {
+    border: none;
+    width: 100vw;
+    height: 100vh;
 }
