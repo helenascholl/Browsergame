@@ -1,20 +1,21 @@
-const V_BULLET = 15;
-const V_PLAYER = 10;
+const V_BULLET = 10;
+const V_PLAYER = 6;
 const V_ENEMY = 3;
 const MIN_X = 100;
 const MIN_Y = 100;
-const MAX_X = window.innerWidth - 100;
-const MAX_Y = window.innerHeight - 100;
 const VALID_KEYS = ['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
-let CHARACTER_WIDTH = 30;
-let CHARACTER_HEIGHT = 53;
+let PLAYER_WIDTH = 30;
+let PLAYER_HEIGHT = 53;
+let ENEMY_WIDTH = 30;
+let ENEMY_HEIGHT = 53;
+let max_x;
+let max_y;
 let player;
 let body;
 let game;
 let pressedKeys;
 let bulletIntervals;
 let mainInterval;
-let spawnEnemyInterval;
 let reloaded;
 let bulletCounter;
 let bulletDirection;
@@ -22,6 +23,8 @@ let score;
 let highscore = 0;
 let scoreParagraph;
 let highscoreParagraph;
+let spawnCooldown;
+let gameIsOver = false;
 
 window.addEventListener('load', () => {
     let div = document.createElement('div');
@@ -56,12 +59,24 @@ window.addEventListener('keydown', (element) => {
     }
 });
 
+window.addEventListener('resize', () => {
+    setMaxValues();
+});
+
+function setMaxValues() {
+    max_x = window.innerWidth - 100;
+    max_y = window.innerHeight - 100;
+}
+
 function init() {
     pressedKeys = [];
     bulletIntervals = [];
     reloaded = true;
     bulletCounter = 0;
     score = 0;
+    spawnCooldown = 2000;
+
+    setMaxValues();
 
     scoreParagraph = document.createElement('p');
     highscoreParagraph = document.createElement('p');
@@ -72,11 +87,12 @@ function init() {
     game = document.createElement('div');
 
     player = document.createElement('div');
-    player.style.height = CHARACTER_HEIGHT + 'px';
-    player.style.width = CHARACTER_WIDTH + 'px';
+    player.style.height = PLAYER_HEIGHT + 'px';
+    player.style.width = PLAYER_WIDTH + 'px';
     player.style.backgroundImage = 'url(./img/player.png)';
+    player.style.backgroundSize = (PLAYER_WIDTH * 9) + 'px ' + (PLAYER_HEIGHT * 4) + 'px';
     player.style.backgroundPositionX = '0px';
-    player.style.backgroundPositionY = CHARACTER_HEIGHT + 'px';
+    player.style.backgroundPositionY = PLAYER_HEIGHT + 'px';
     player.direction = 'right';
     player.velocity = V_PLAYER;
     player.style.top = MIN_Y + 'px';
@@ -89,7 +105,9 @@ function init() {
     body.appendChild(game);
 
     mainInterval = setInterval(interval, 10);
-    spawnEnemyInterval = setInterval(spawnEnemy, 5000);
+
+    setTimeout(spawnEnemy, spawnCooldown);
+    spawnCooldown -= 20;
 }
 
 function interval() {
@@ -102,7 +120,7 @@ function interpretKeys() {
     let noKeysPressed = true;
 
     for (let i in pressedKeys) {
-        if (pressedKeys[i]) {
+        if (pressedKeys[i] && i.substring(0, 5) != 'Arrow') {
             noKeysPressed = false;
         }
     }
@@ -110,22 +128,18 @@ function interpretKeys() {
     if (pressedKeys['w'] || pressedKeys['W']) {
         player.direction = 'up';
         move(player);
-        animate(player, false);
     }
     if (pressedKeys['a'] || pressedKeys['A']) {
         player.direction = 'left';
         move(player);
-        animate(player, false);
     }
     if (pressedKeys['s'] || pressedKeys['S']) {
         player.direction = 'down';
         move(player);
-        animate(player, false);
     }
     if (pressedKeys['d'] || pressedKeys['D']) {
         player.direction = 'right';
         move(player);
-        animate(player, false);
     }
     if (pressedKeys['ArrowUp'] && reloaded) {
         bulletDirection = 'up';
@@ -145,6 +159,8 @@ function interpretKeys() {
     }
     if (noKeysPressed) {
         animate(player, true);
+    } else {
+        animate(player, false);  
     }
 }
 
@@ -170,18 +186,18 @@ function move(character) {
             break;
 
         case 'down':
-            if (top + character.velocity + parseInt(character.style.height) <= MAX_Y) {
+            if (top + character.velocity + parseInt(character.style.height) <= max_y) {
                 character.style.top = (top + character.velocity) + 'px';
             } else {
-                character.style.top = (MAX_Y - character.style.height) + 'px';
+                character.style.top = (max_y - character.style.height) + 'px';
             }
             break;
 
         case 'right':
-            if (left + character.velocity + parseInt(character.style.width) <= MAX_X) {
+            if (left + character.velocity + parseInt(character.style.width) <= max_x) {
                 character.style.left = (left + character.velocity) + 'px';
             } else {
-                character.style.left = (MAX_X - character.style.width) + 'px';
+                character.style.left = (max_x - character.style.width) + 'px';
             }
             break;
     }
@@ -263,7 +279,7 @@ function moveBullets() {
             }
         }
 
-        if (left < MIN_X || left > MAX_X || top < MIN_Y || top > MAX_Y) {
+        if (left < MIN_X || left > max_x || top < MIN_Y || top > max_y) {
             clearInterval(bulletIntervals['bullet' + bullet.number]);
             bulletIntervals.splice('bullet' + bullet.numer);
             game.removeChild(bullet);
@@ -277,15 +293,16 @@ function reload() {
 
 function spawnEnemy() {
     let enemy = document.createElement('div');
-    let isTooClose = false;
+    let isTooClose;
     let top;
     let left;
 
-    enemy.style.width = CHARACTER_WIDTH + 'px';
-    enemy.style.height = CHARACTER_HEIGHT + 'px';
+    enemy.style.width = ENEMY_WIDTH + 'px';
+    enemy.style.height = ENEMY_HEIGHT + 'px';
     enemy.style.backgroundImage = 'url(./img/enemy.png)';
+    enemy.style.backgroundSize = (ENEMY_WIDTH * 9) + 'px ' + (ENEMY_HEIGHT * 4) + 'px';
     enemy.style.backgroundPositionX = '0px';
-    enemy.style.backgroundPositionY = (3 * CHARACTER_HEIGHT) + 'px';
+    enemy.style.backgroundPositionY = (3 * ENEMY_HEIGHT) + 'px';
     enemy.direction = 'left';
     enemy.velocity = V_ENEMY;
     enemy.className = 'enemy';
@@ -294,21 +311,19 @@ function spawnEnemy() {
         let distanceY;
         let distanceX;
 
-        top = parseInt(Math.random() * (MAX_Y - MIN_Y - CHARACTER_HEIGHT) + MIN_Y);
-        left = parseInt(Math.random() * (MAX_X - MIN_X - CHARACTER_WIDTH) + MIN_X);
+        top = parseInt(Math.random() * (max_y - MIN_Y - ENEMY_HEIGHT) + MIN_Y);
+        left = parseInt(Math.random() * (max_x - MIN_X - ENEMY_WIDTH) + MIN_X);
 
         distanceY = Math.abs(parseInt(player.style.top) - top);
         distanceX = Math.abs(parseInt(player.style.left) - left);
 
-        if (distanceY < (MAX_Y - MIN_Y) / 4 && distanceX < (MAX_X - MIN_X) / 4) {
-            isTooClose = true;
-        }
+        isTooClose = distanceY < (max_y - MIN_Y) / 3 && distanceX < (max_x - MIN_X) / 3;
 
         for (let element of document.getElementsByClassName('enemy')) {
             distanceY = Math.abs(parseInt(element.style.top) - top);
             distanceX = Math.abs(parseInt(element.style.left) - left);
             
-            if (distanceY < element.height && distanceX < element.width) {
+            if (distanceY < parseInt(element.style.height) && distanceX < parseInt(element.style.width)) {
                 isTooClose = true;
             }
         }
@@ -318,6 +333,14 @@ function spawnEnemy() {
     enemy.style.left = left + 'px';
 
     game.appendChild(enemy);
+
+    if (!gameIsOver) {
+        setTimeout(spawnEnemy, spawnCooldown);
+    }
+    
+    if (spawnCooldown > 100) {
+        spawnCooldown -= 20;
+    }
 }
 
 function moveEnemies() {
@@ -325,7 +348,7 @@ function moveEnemies() {
         let distanceX = parseInt(player.style.left) - parseInt(enemy.style.left);
         let distanceY = parseInt(player.style.top) - parseInt(enemy.style.top);
 
-        let gameIsOver = distanceX <= parseInt(enemy.style.width) && distanceX * -1 <= parseInt(player.style.width)
+        gameIsOver = distanceX <= parseInt(enemy.style.width) && distanceX * -1 <= parseInt(player.style.width)
                         && distanceY <= parseInt(enemy.style.height) && distanceY * -1 <= parseInt(player.style.height);
 
         if (gameIsOver) {
@@ -370,6 +393,7 @@ function moveEnemies() {
 
 function animate(character, noKeysPressed) {
     let y = parseInt(character.style.backgroundPositionY);
+    let height = parseInt(character.style.height);
 
     switch (character.direction) {
         case 'up':
@@ -382,8 +406,8 @@ function animate(character, noKeysPressed) {
             break;
 
         case 'left':
-            if (y != 3 * CHARACTER_HEIGHT || noKeysPressed) {
-                character.style.backgroundPositionY = (3 * CHARACTER_HEIGHT) + 'px';
+            if (y != 3 * height || noKeysPressed) {
+                character.style.backgroundPositionY = (3 * height) + 'px';
                 character.style.backgroundPositionX = '0px';
             } else {
                 moveBackgroundImage(character);
@@ -391,8 +415,8 @@ function animate(character, noKeysPressed) {
             break;
 
         case 'down':
-            if (y != 2 * CHARACTER_HEIGHT || noKeysPressed) {
-                character.style.backgroundPositionY = (2 * CHARACTER_HEIGHT) + 'px';
+            if (y != 2 * height || noKeysPressed) {
+                character.style.backgroundPositionY = (2 * height) + 'px';
                 character.style.backgroundPositionX = '0px';
             } else {
                 moveBackgroundImage(character);
@@ -400,8 +424,8 @@ function animate(character, noKeysPressed) {
             break;
 
         case 'right':
-            if (y != CHARACTER_HEIGHT || noKeysPressed) {
-                character.style.backgroundPositionY = CHARACTER_HEIGHT + 'px';
+            if (y != height || noKeysPressed) {
+                character.style.backgroundPositionY = height + 'px';
                 character.style.backgroundPositionX = '0px';
             } else {
                 moveBackgroundImage(character);
@@ -412,11 +436,12 @@ function animate(character, noKeysPressed) {
 
 function moveBackgroundImage(character) {
     let x = parseInt(character.style.backgroundPositionX);
+    let width = parseInt(character.style.width);
 
-    if (x == 9 * CHARACTER_WIDTH) {
+    if (x == 9 * width) {
         character.style.backgroundPositionX = '0px'
     } else {
-        character.style.backgroundPositionX = (x + CHARACTER_WIDTH) + 'px';
+        character.style.backgroundPositionX = (x + width) + 'px';
     }
 }
 
@@ -428,7 +453,6 @@ function gameOver() {
     let p2 = document.createElement('p');
 
     clearInterval(mainInterval);
-    clearInterval(spawnEnemyInterval);
 
     for (let interval of bulletIntervals) {
         clearInterval(interval);
