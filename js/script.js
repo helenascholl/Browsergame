@@ -6,8 +6,8 @@ const MIN_Y = 100;
 const VALID_KEYS = ['w', 'a', 's', 'd', 'W', 'A', 'S', 'D', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'];
 let PLAYER_WIDTH = 30;
 let PLAYER_HEIGHT = 53;
-let ENEMY_WIDTH = 30;
-let ENEMY_HEIGHT = 53;
+let ENEMY_WIDTH = 32;
+let ENEMY_HEIGHT = 48;
 let max_x;
 let max_y;
 let player;
@@ -27,24 +27,29 @@ let spawnCooldown;
 let gameIsOver = false;
 
 window.addEventListener('load', () => {
-    let div = document.createElement('div');
+    let wrapper = document.createElement('div');
     let h1 = document.createElement('h1');
+    let p = document.createElement('p');
     let button = document.createElement('button');
 
     body = document.getElementById('body');
 
-    h1.textContent = 'Game';
+    h1.textContent = 'Browsergame';
+    p.textContent = 'Move your character with W, A, S and D and shoot with your arrrow keys to kill as many skeletons as possible!';
     button.textContent = 'Play';
 
     button.addEventListener('click', () => {
         init();
-        body.removeChild(div);
+        body.removeChild(wrapper);
     });
 
-    div.appendChild(h1);
-    div.appendChild(button);
+    wrapper.id = 'start';
 
-    body.appendChild(div);
+    wrapper.appendChild(h1);
+    wrapper.appendChild(p);
+    wrapper.appendChild(button);
+
+    body.appendChild(wrapper);
 });
 
 window.addEventListener('keyup', (element) => {
@@ -69,6 +74,8 @@ function setMaxValues() {
 }
 
 function init() {
+    let scores = document.createElement('div');
+
     pressedKeys = [];
     bulletIntervals = [];
     reloaded = true;
@@ -78,13 +85,23 @@ function init() {
 
     setMaxValues();
 
+    body.style.backgroundImage = 'url(./img/background.png)';
+    body.style.backgroundSize = '25vw 25vw';
+
     scoreParagraph = document.createElement('p');
     highscoreParagraph = document.createElement('p');
 
     scoreParagraph.textContent = 'Score: ' + score;
     highscoreParagraph.textContent = 'Highscore: ' + highscore;
 
+    scores.id = 'scores';
+    
+    scores.appendChild(scoreParagraph);
+    scores.appendChild(highscoreParagraph);
+
     game = document.createElement('div');
+
+    game.id = 'game';
 
     player = document.createElement('div');
     player.style.height = PLAYER_HEIGHT + 'px';
@@ -99,8 +116,7 @@ function init() {
     player.style.left = MIN_X + 'px';
 
     game.appendChild(player);
-    game.appendChild(scoreParagraph);
-    game.appendChild(highscoreParagraph);
+    game.appendChild(scores);
 
     body.appendChild(game);
 
@@ -446,7 +462,7 @@ function moveBackgroundImage(character) {
 }
 
 function gameOver() {
-    let div = document.createElement('div');
+    let wrapper = document.createElement('div');
     let h1 = document.createElement('h1');
     let button = document.createElement('button');
     let p1 = document.createElement('p');
@@ -458,6 +474,8 @@ function gameOver() {
         clearInterval(interval);
     }
 
+    body.style.backgroundImage = 'none';
+
     body.removeChild(game);
 
     h1.textContent = 'Game over';
@@ -467,13 +485,15 @@ function gameOver() {
 
     button.addEventListener('click', () => {
         init();
-        body.removeChild(div);
+        body.removeChild(wrapper);
     });
 
-    div.appendChild(h1);
-    div.appendChild(button);
-    div.appendChild(p1);
-    div.appendChild(p2);
+    wrapper.id = 'gameOver';
 
-    body.appendChild(div);
+    wrapper.appendChild(h1);
+    wrapper.appendChild(p1);
+    wrapper.appendChild(p2);
+    wrapper.appendChild(button);
+
+    body.appendChild(wrapper);
 }
