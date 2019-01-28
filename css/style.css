@@ -42,11 +42,11 @@ button {
     transition: background-color 200ms;
     font-family: 'Teko', sans-serif;
     font-size: 2vw;
-    background-color: grey;
+    background-color: darkgrey;
 }
 button:hover {
     cursor: pointer;
-    background-color: darkgrey;
+    background-color: grey;
 }
 h1 {
     font-size: 10vw;

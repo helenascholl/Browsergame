@@ -16,6 +16,7 @@ let game;
 let pressedKeys;
 let bulletIntervals;
 let mainInterval;
+let spawnEnemyInterval;
 let reloaded;
 let bulletCounter;
 let bulletDirection;
@@ -23,7 +24,7 @@ let score;
 let highscore = 0;
 let scoreParagraph;
 let highscoreParagraph;
-let spawnCooldown;
+//let spawnCooldown;
 let gameIsOver = false;
 
 window.addEventListener('load', () => {
@@ -81,7 +82,7 @@ function init() {
     reloaded = true;
     bulletCounter = 0;
     score = 0;
-    spawnCooldown = 2000;
+    //spawnCooldown = 2000;
 
     setMaxValues();
 
@@ -121,9 +122,10 @@ function init() {
     body.appendChild(game);
 
     mainInterval = setInterval(interval, 10);
+    spawnEnemyInterval = setInterval(spawnEnemy, 2000);
 
-    setTimeout(spawnEnemy, spawnCooldown);
-    spawnCooldown -= 20;
+    /*setTimeout(spawnEnemy, spawnCooldown);
+    spawnCooldown -= 20;*/
 }
 
 function interval() {
@@ -469,6 +471,7 @@ function gameOver() {
     let p2 = document.createElement('p');
 
     clearInterval(mainInterval);
+    clearInterval(spawnEnemyInterval);
 
     for (let interval of bulletIntervals) {
         clearInterval(interval);
