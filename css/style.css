@@ -42,6 +42,7 @@ button {
     transition: background-color 200ms;
     font-family: 'Teko', sans-serif;
     font-size: 2vw;
+    background-color: grey;
 }
 button:hover {
     cursor: pointer;
