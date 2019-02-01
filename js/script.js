@@ -1,4 +1,4 @@
-const V_BULLET = 10;
+const V_BULLET = 30;
 const V_PLAYER = 6;
 const V_ENEMY = 3;
 const MIN_X = 100;
@@ -352,13 +352,13 @@ function spawnEnemy() {
 
     game.appendChild(enemy);
 
-    if (!gameIsOver) {
+    /*if (!gameIsOver) {
         setTimeout(spawnEnemy, spawnCooldown);
     }
     
     if (spawnCooldown > 100) {
         spawnCooldown -= 20;
-    }
+    }*/
 }
 
 function moveEnemies() {
