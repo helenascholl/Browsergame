@@ -24,7 +24,6 @@ let score;
 let highscore = 0;
 let scoreParagraph;
 let highscoreParagraph;
-//let spawnCooldown;
 let gameIsOver = false;
 
 window.addEventListener('load', () => {
@@ -82,7 +81,6 @@ function init() {
     reloaded = true;
     bulletCounter = 0;
     score = 0;
-    //spawnCooldown = 2000;
 
     setMaxValues();
 
@@ -123,9 +121,6 @@ function init() {
 
     mainInterval = setInterval(interval, 10);
     spawnEnemyInterval = setInterval(spawnEnemy, 2000);
-
-    /*setTimeout(spawnEnemy, spawnCooldown);
-    spawnCooldown -= 20;*/
 }
 
 function interval() {
@@ -351,14 +346,6 @@ function spawnEnemy() {
     enemy.style.left = left + 'px';
 
     game.appendChild(enemy);
-
-    /*if (!gameIsOver) {
-        setTimeout(spawnEnemy, spawnCooldown);
-    }
-    
-    if (spawnCooldown > 100) {
-        spawnCooldown -= 20;
-    }*/
 }
 
 function moveEnemies() {
